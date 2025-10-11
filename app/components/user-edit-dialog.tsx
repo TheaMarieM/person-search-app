@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { updateUser } from '@/app/actions/actions'
 import { userFormSchema, User, UserFormData } from '@/app/actions/schemas'
 import { UserForm } from './user-form'
@@ -10,24 +11,30 @@ interface UserEditDialogProps {
 }
 
 export function UserEditDialog({ user }: UserEditDialogProps) {
-  const handleEditUser = async (data: UserFormData): Promise<ActionState<User>> => {
-    try {
-      const updatedUser = await updateUser(user.id, data)
-      return {
-        success: true,
-        message: `User ${updatedUser.name} updated successfully`,
-        data: updatedUser,
+  const handleEditUser = React.useCallback(
+    async (data: UserFormData): Promise<ActionState<User>> => {
+      try {
+        const updatedUser = await updateUser(user.id, data)
+        return {
+          success: true,
+          message: `User ${updatedUser.name} updated successfully`,
+          data: updatedUser,
+        }
+      } catch (error) {
+        return {
+          success: false,
+          message:
+            'Failed to update user: ' +
+            (error instanceof Error ? error.message : String(error)),
+        }
       }
-    } catch (error) {
-      return {
-        success: false,
-        message: 'Failed to update user' + (error instanceof Error ? error.message : String(error)),
-      }
-    }
-  }
+    },
+    [user.id]
+  )
 
   return (
     <MutableDialog<UserFormData>
+      key={user.id}
       formSchema={userFormSchema}
       FormComponent={UserForm}
       action={handleEditUser}
