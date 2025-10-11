@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Github, Linkedin, Twitter, Database } from 'lucide-react'
+import { Github, Database } from 'lucide-react' // Removed unused Linkedin and Twitter
 
 function ProjectOverview() {
   return (
@@ -115,7 +115,6 @@ function QuickLinks() {
               Database Structure
             </Link>
           </Button>
-        
         </div>
       </CardContent>
     </Card>
