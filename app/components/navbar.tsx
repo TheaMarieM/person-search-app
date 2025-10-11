@@ -2,7 +2,7 @@
 'use client'
 
 import Link from 'next/link';
-import { Search, Moon, Sun } from 'lucide-react';
+import { Search, Moon, Sun, Github } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from "@/components/ui/button";
 
@@ -26,6 +26,15 @@ export default function Navbar() {
             <Link href="/about" className="text-foreground hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
               About
             </Link>
+            <a 
+              href="https://github.com/TheaMarieM/person-search" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-foreground hover:text-primary px-3 py-2 rounded-md text-sm font-medium flex items-center gap-2"
+            >
+              <Github className="h-4 w-4" />
+              GitHub
+            </a>
             <Button
               variant="ghost"
               size="icon"
