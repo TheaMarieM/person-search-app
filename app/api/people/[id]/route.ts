@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/auth'
 import { rateLimitByIp, getIp, audit, isAdmin } from '@/lib/security'
 import type { Session } from 'next-auth'
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, context: { params: { id: string } }) {
   try {
-    const id = Number(params.id)
+    const id = Number(context.params.id)
     const person = await prisma.person.findUnique({ where: { id } })
     if (!person) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     return NextResponse.json(person)
@@ -17,7 +17,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, context: { params: { id: string } }) {
   try {
     const session: Session | null = await getServerSession(authOptions)
     if (!session) {
@@ -27,7 +27,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (!rl.ok) {
       return NextResponse.json({ error: 'Too Many Requests' }, { status: 429, headers: { 'Retry-After': '60' } })
     }
-    const id = Number(params.id)
+    const id = Number(context.params.id)
     const body: Partial<{ name: string; email: string; phoneNumber: string; age?: number }> = await request.json()
     const { name, email, phoneNumber, age } = body
     const updated = await prisma.person.update({
@@ -53,7 +53,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, context: { params: { id: string } }) {
   try {
     const session: Session | null = await getServerSession(authOptions)
     if (!session) {
@@ -62,7 +62,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     if (!isAdmin(session.user?.email ?? null)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
-    const id = Number(params.id)
+    const id = Number(context.params.id)
     await prisma.person.delete({ where: { id } })
     await audit({
       actorEmail: session.user?.email ?? null,

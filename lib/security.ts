@@ -1,4 +1,3 @@
-import type { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import type { Prisma } from '@prisma/client'
 
@@ -9,7 +8,7 @@ function keyFor(ip: string, bucket: string) {
   return `${bucket}:${ip}`
 }
 
-export function getIp(req: NextRequest): string {
+export function getIp(req: Request): string {
   const fwd = req.headers.get('x-forwarded-for') || ''
   const ip = fwd.split(',')[0]?.trim()
   // NextRequest may expose ip via geo in some platforms; fallback
@@ -17,7 +16,7 @@ export function getIp(req: NextRequest): string {
 }
 
 export function rateLimitByIp(
-  req: NextRequest,
+  req: Request,
   bucket: string,
   limit = 30,
   windowMs = 60_000
