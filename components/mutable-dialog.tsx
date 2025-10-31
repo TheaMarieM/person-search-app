@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog"
 import { toast } from "../hooks/use-toast"; // Using shadcn toast hook for notifications.
 import { ZodType } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod'
 
 export interface ActionState <T>{
     success: boolean;
@@ -49,30 +50,7 @@ export default function MutableDialog<T extends FieldValues>({
   const [open, setOpen] = useState(false);
 
   const form = useForm<T>({
-    resolver: async (values) => {
-      try {
-        console.log('Form values before validation:', values); // Log the form values before validation
-        const result = formSchema.parse(values);
-        console.log('Validation passed:', result); // Log the result after validation
-        return { values: result, errors: {} };
-      }
-      catch (err: unknown) {
-        // Narrow to ZodError-like shape without using any
-        if (
-          typeof err === 'object' &&
-          err !== null &&
-          'formErrors' in err &&
-          typeof (err as { formErrors?: unknown }).formErrors === 'object' &&
-          (err as { formErrors?: { fieldErrors?: Record<string, unknown> } }).formErrors?.fieldErrors
-        ) {
-          const fieldErrors = (err as { formErrors: { fieldErrors: Record<string, unknown> } }).formErrors.fieldErrors
-          console.log('Validation errors:', fieldErrors);
-          return { values: {}, errors: fieldErrors } as { values: Record<string, never>; errors: Record<string, unknown> };
-        }
-        console.error('Unexpected validation error:', err)
-        return { values: {}, errors: {} }
-      }
-    },
+    resolver: zodResolver(formSchema),
     defaultValues: defaultValues,
   });
 
