@@ -28,8 +28,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Too Many Requests' }, { status: 429, headers: { 'Retry-After': '60' } })
     }
     const id = Number(params.id)
-    const body = await request.json()
-    const { name, email, phoneNumber, age } = body ?? {}
+    const body: Partial<{ name: string; email: string; phoneNumber: string; age?: number }> = await request.json()
+    const { name, email, phoneNumber, age } = body
     const updated = await prisma.person.update({
       where: { id },
       data: {
