@@ -56,15 +56,21 @@ export default function MutableDialog<T extends FieldValues>({
         console.log('Validation passed:', result); // Log the result after validation
         return { values: result, errors: {} };
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-       catch (err: any) {
-        if (err.formErrors?.fieldErrors) {
-          // check if err is instance of ZodError then return the formErrors
-          console.log('Validation errors:',  err.formErrors.fieldErrors); // Log the validation errors
-          return { values: {}, errors: err.formErrors.fieldErrors };
+      catch (err: unknown) {
+        // Narrow to ZodError-like shape without using any
+        if (
+          typeof err === 'object' &&
+          err !== null &&
+          'formErrors' in err &&
+          typeof (err as { formErrors?: unknown }).formErrors === 'object' &&
+          (err as { formErrors?: { fieldErrors?: Record<string, unknown> } }).formErrors?.fieldErrors
+        ) {
+          const fieldErrors = (err as { formErrors: { fieldErrors: Record<string, unknown> } }).formErrors.fieldErrors
+          console.log('Validation errors:', fieldErrors);
+          return { values: {}, errors: fieldErrors } as { values: Record<string, never>; errors: Record<string, unknown> };
         }
-        console.error('Unexpected validation error:', err);
-        return { values: {}, errors: {} };
+        console.error('Unexpected validation error:', err)
+        return { values: {}, errors: {} }
       }
     },
     defaultValues: defaultValues,
