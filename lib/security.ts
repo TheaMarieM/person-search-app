@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import type { Prisma } from '@prisma/client'
 
 // Simple in-memory rate limiter (best-effort for demo; use Redis in prod)
 const buckets = new Map<string, { count: number; resetAt: number }>()
@@ -15,7 +16,12 @@ export function getIp(req: NextRequest): string {
   return ip || '0.0.0.0'
 }
 
-export function rateLimitByIp(req: NextRequest, bucket: string, limit = 30, windowMs = 60_000) {
+export function rateLimitByIp(
+  req: NextRequest,
+  bucket: string,
+  limit = 30,
+  windowMs = 60_000
+): { ok: true } | { ok: false; retryAfterMs: number } {
   const ip = getIp(req)
   const k = keyFor(ip, bucket)
   const now = Date.now()
@@ -41,7 +47,7 @@ export async function audit(params: {
   actorEmail?: string | null
   action: string
   target: string
-  details?: any
+  details?: Prisma.InputJsonValue
   ip?: string
 }) {
   try {
@@ -50,7 +56,7 @@ export async function audit(params: {
         actorEmail: params.actorEmail || null,
         action: params.action,
         target: params.target,
-        details: params.details as any,
+        details: params.details,
         ip: params.ip || null,
       },
     })

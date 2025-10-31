@@ -4,9 +4,10 @@ import { UserDialog } from './components/user-dialog';
 import SignInCard from './components/sign-in-card';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
+import type { AuthOptions } from 'next-auth';
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ userId?: string }> }) {
-  const session = await getServerSession(authOptions as any)
+  const session = await getServerSession(authOptions as AuthOptions)
 
   if (!session) {
     return (

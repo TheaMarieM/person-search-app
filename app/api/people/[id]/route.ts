@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/auth'
 import { rateLimitByIp, getIp, audit, isAdmin } from '@/lib/security'
+import type { Session } from 'next-auth'
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -18,7 +19,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await getServerSession(authOptions as any)
+    const session: Session | null = await getServerSession(authOptions)
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -39,7 +40,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       },
     })
     await audit({
-      actorEmail: (session as any)?.user?.email,
+      actorEmail: session.user?.email ?? null,
       action: 'person.update',
       target: String(id),
       details: { name, email, phoneNumber, age },
@@ -54,17 +55,17 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await getServerSession(authOptions as any)
+    const session: Session | null = await getServerSession(authOptions)
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    if (!isAdmin((session as any)?.user?.email)) {
+    if (!isAdmin(session.user?.email ?? null)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
     const id = Number(params.id)
     await prisma.person.delete({ where: { id } })
     await audit({
-      actorEmail: (session as any)?.user?.email,
+      actorEmail: session.user?.email ?? null,
       action: 'person.delete',
       target: String(id),
       ip: getIp(_req),

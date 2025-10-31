@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/auth'
 import { rateLimitByIp, getIp, audit } from '@/lib/security'
+import type { Session } from 'next-auth'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = (await getServerSession(authOptions as any)) as any
+    const session: Session | null = await getServerSession(authOptions)
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -40,8 +41,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Too Many Requests' }, { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.retryAfterMs || 0)/1000)) } })
     }
 
-    const body = await request.json()
-    const { name, email, phoneNumber, age } = body ?? {}
+    const body: Partial<{ name: string; email: string; phoneNumber: string; age?: number }> = await request.json()
+    const { name, email, phoneNumber, age } = body
 
     if (!name || !email || !phoneNumber) {
       return NextResponse.json({ error: 'name, email, and phoneNumber are required' }, { status: 400 })
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     })
 
     await audit({
-      actorEmail: session?.user?.email,
+      actorEmail: session.user?.email ?? null,
       action: 'person.create',
       target: String(created.id),
       details: { name, email },
