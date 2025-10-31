@@ -110,7 +110,7 @@ function QuickLinks() {
       <CardContent>
         <div className="grid md:grid-cols-2 gap-4">
           <Button asChild variant="outline" className="justify-start">
-            <Link href="/database/page.tsx">
+            <Link href="/database">
               <Database className="mr-2 h-4 w-4" />
               Database Structure
             </Link>
