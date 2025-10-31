@@ -20,3 +20,15 @@ model Person {
   @@map("person")
 }
 
+model AuditLog {
+  id         Int       @id @default(autoincrement())
+  createdAt  DateTime  @default(now())
+  actorEmail String?
+  action     String
+  target     String
+  details    Json?
+  ip         String?
+
+  @@map("audit_log")
+}
+

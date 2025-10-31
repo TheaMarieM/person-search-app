@@ -62,11 +62,43 @@ function TechStack() {
   )
 }
 
+function McpIntegration() {
+  return (
+    <Card className="mb-8">
+      <CardHeader>
+        <CardTitle>MCP Integration Architecture</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 text-sm text-muted-foreground">
+        <p>
+          The Model Context Protocol (MCP) server exposes Person CRUD tools to Claude Desktop. Those tools
+          operate directly on the same PostgreSQL database used by this app via Prisma.
+        </p>
+        <div className="bg-muted p-4 rounded-lg">
+          <ul className="list-disc pl-6 space-y-1">
+            <li>Claude Desktop invokes MCP tools: person.create, person.get, person.update, person.delete.</li>
+            <li>MCP server uses Prisma Client against the <code className="bg-background px-1 py-0.5 rounded">Person</code> model.</li>
+            <li>Changes are visible here in real time via the <Link className="underline" href="/mcp-demo">/mcp-demo</Link> page.</li>
+            <li>Configure Claude Desktop to launch the MCP server with your <code className="bg-background px-1 py-0.5 rounded">DATABASE_URL</code>.</li>
+          </ul>
+        </div>
+        <div className="flex gap-3">
+          <Button asChild>
+            <Link href="/mcp-setup">MCP Setup</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/mcp-demo">MCP Demo</Link>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 function SocialLinks() {
   return (
     <div className="flex flex-wrap gap-4">
       <Button asChild>
-        <Link href="https://github.com/TheaMarieM/person-search" target="_blank" rel="noopener noreferrer">
+        <Link href="https://github.com/TheaMarieM/person-search-app" target="_blank" rel="noopener noreferrer">
           <Github className="mr-2 h-4 w-4" /> Project Repository
         </Link>
       </Button>
@@ -128,6 +160,7 @@ export default function AboutPage() {
         <h1 className="text-3xl font-bold mb-8">About Person Search</h1>
         <ProjectOverview />
         <TechStack />
+        <McpIntegration />
         <DeveloperInfo />
         <QuickLinks />
         <Button asChild variant="link" className="mt-4">

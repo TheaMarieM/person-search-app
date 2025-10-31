@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { User } from '@/app/actions/schemas'
 import { searchUsers } from '@/app/actions/actions'
+import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/auth'
+import { rateLimitByIp, getIp, audit } from '@/lib/security'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -20,6 +24,44 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(users)
   } catch (error) {
     console.error('Error searching users:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = (await getServerSession(authOptions as any)) as any
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const rl = rateLimitByIp(request, 'people:post', 20, 60_000)
+    if (!rl.ok) {
+      return NextResponse.json({ error: 'Too Many Requests' }, { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.retryAfterMs || 0)/1000)) } })
+    }
+
+    const body = await request.json()
+    const { name, email, phoneNumber, age } = body ?? {}
+
+    if (!name || !email || !phoneNumber) {
+      return NextResponse.json({ error: 'name, email, and phoneNumber are required' }, { status: 400 })
+    }
+
+    const created = await prisma.person.create({
+      data: { name, email, phoneNumber, age: typeof age === 'number' ? age : null },
+    })
+
+    await audit({
+      actorEmail: session?.user?.email,
+      action: 'person.create',
+      target: String(created.id),
+      details: { name, email },
+      ip: getIp(request),
+    })
+
+    return NextResponse.json(created, { status: 201 })
+  } catch (error) {
+    console.error('Error creating person:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
