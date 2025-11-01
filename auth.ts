@@ -9,4 +9,15 @@ export const authOptions: AuthOptions = {
     }),
   ],
   session: { strategy: 'jwt' },
+  secret: process.env.NEXTAUTH_SECRET,
+  callbacks: {
+    async signIn({ user, account, profile }) {
+      // Optional: restrict to admin emails
+      const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
+      if (adminEmails.length > 0 && !adminEmails.includes(user.email || '')) {
+        return false;
+      }
+      return true;
+    },
+  },
 }
